@@ -97,7 +97,7 @@
             ctx.fillStyle = "rgb(120, 120, 230)";
             ctx.fillRect(0, canvas.height - 40, canvas.width, 40);
             for (let i = 0; i < rainNum / 2; i++) {
-                raindrops.push(new Raindrop((Math.random() * 4 - 1.5)* canvas.width, 0, wind + (Math.random() - 0.5), Math.random() * 7 + 5));
+                raindrops.push(new Raindrop((Math.random() * 3.6 - 1.3) * canvas.width, 0, wind + (Math.random() - 0.5), Math.random() * 7 + 5));
             }
             const tuple_raindrops = [...raindrops];
             for (let i of tuple_raindrops) {
