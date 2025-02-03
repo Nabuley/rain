@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rain Simulation</title>
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #050523; }
+        canvas { display: block; }
+        .info {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            font-size: 20px;
+            font-family: Arial, sans-serif;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="rainCanvas"></canvas>
+    <div class="info" id="windInfo"></div>
+    <script>
+        const canvas = document.getElementById("rainCanvas");
+        const ctx = canvas.getContext("2d");
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        let wind = 0;
+        let rainNum = 20;
+        const raindrops = [];
+        
+        class Raindrop {
+            constructor(x, y, moveX, moveY, isReal = true) {
+                this.x = x;
+                this.y = y;
+                this.moveX = moveX;
+                this.moveY = moveY;
+                this.isReal = isReal;
+                this.color = isReal ? "rgb(100, 100, 255)" : `rgb(${Math.random() * 70 + 100}, ${Math.random() * 70 + 100}, 255)`;
+            }
+            
+            update() {
+                this.x += this.moveX;
+                this.y += this.moveY;
+                this.moveY += 9.8 / fps;
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, 3, 0, Math.PI * 2);
+                ctx.fill();
+                if (this.y > canvas.height - 40) {
+                    const index = raindrops.indexOf(this);
+                    if (index > -1) raindrops.splice(index, 1);
+                    if (this.isReal) {
+                        for (let i = 0; i < Math.random() * 3 + 2; i++) {
+                            raindrops.push(new Raindrop(this.x, canvas.height - 41, wind / 2 + (Math.random() - 0.5) * 6, -Math.pow(Math.random(), Math.random() * 2) * 5.5, false));
+                        }
+                    }
+                }
+            }
+        }
+
+        let lastTime = performance.now();
+        let frameCount = 0;
+        let fps = 60;
+
+        function updateFPS() {
+            let now = performance.now();
+            frameCount++;
+
+            // 1초(1000ms)마다 FPS 갱신
+            if (now - lastTime >= 1000) {
+                fps = frameCount;
+                frameCount = 0;
+                lastTime = now;
+                document.getElementById("fpsDisplay").textContent = `FPS: ${fps}`;
+            }
+
+            requestAnimationFrame(updateFPS);
+        }
+
+        // HTML에 FPS 표시용 div 추가
+        const fpsDisplay = document.createElement("div");
+        fpsDisplay.id = "fpsDisplay";
+        fpsDisplay.style.position = "absolute";
+        fpsDisplay.style.top = "10px";
+        fpsDisplay.style.right = "10px";
+        fpsDisplay.style.color = "white";
+        fpsDisplay.style.fontSize = "20px";
+        document.body.appendChild(fpsDisplay);
+
+        updateFPS();
+
+        function updateRain() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = "rgb(120, 120, 230)";
+            ctx.fillRect(0, canvas.height - 40, canvas.width, 40);
+            for (let i = 0; i < rainNum / 2; i++) {
+                raindrops.push(new Raindrop((Math.random() * 3 - 1)* canvas.width, 0, wind + (Math.random() - 0.5), Math.random() * 7 + 5));
+            }
+            const tuple_raindrops = [...raindrops];
+            for (let i of tuple_raindrops) {
+                i.update()
+            }
+            document.getElementById("windInfo").textContent = `${wind < 0 ? "<-" : ""}${Math.abs(wind.toFixed(1))}m/s${wind > 0 ? "->" : ""}`;
+            requestAnimationFrame(updateRain);
+        }
+        
+        window.addEventListener("keydown", (e) => {
+            if (e.key === "ArrowRight") wind = Math.min(40, wind + 0.1);
+            if (e.key === "ArrowLeft") wind = Math.max(-40, wind - 0.1);
+            if (e.key === "ArrowUp") rainNum = Math.min(48, rainNum + 1);
+            if (e.key === "ArrowDown") rainNum = Math.max(1, rainNum - 1);
+        });
+        
+        updateRain();
+        
+    </script>
+</body>
+</html>
